@@ -342,8 +342,8 @@ def main(args):
                                  lr=args.local_lr, 
                                  weight_decay=args.weight_decay)
     t1 = time.time()
-    train_local(local_net, graph, feats, local_opt, args)
-    
+    #train_local(local_net, graph, feats, local_opt, args)
+
     # load information from LIM module
     norm_idx, abnor_idx = train_local(local_net, graph, feats, local_opt, args, memorybank_nor, memorybank_abnor)
     memo, nor_idx, ano_idx, center = load_info_from_local(local_net, norm_idx, abnor_idx, args.gpu)
