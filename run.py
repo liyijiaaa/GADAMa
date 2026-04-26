@@ -144,7 +144,7 @@ def train_local(net, graph, feats, opt, args, memorybank_nor, memorybank_abnor, 
         if epoch > 0:
 
             _, train_list_temp = train_ano_score[epoch - 1].topk(
-                int((epoch / args.local_epochs) ** 2 * num_nodes), dim=0,
+                int(num_nodes-(epoch / args.local_epochs) ** 2 * num_nodes), dim=0,
                 largest=False, sorted=True)
             train_list_temp = train_list_temp.cpu().numpy()
             train_list_temp = train_list_temp.tolist()
@@ -152,7 +152,7 @@ def train_local(net, graph, feats, opt, args, memorybank_nor, memorybank_abnor, 
 
 
             _, train_list_atemp = train_ano_score[epoch - 1].topk(
-                int((epoch / args.local_epochs) ** 2 * num_nodes), dim=0,
+                int(num_nodes-(epoch / args.local_epochs) ** 2 * num_nodes), dim=0,
                 largest=True, sorted=True)
             train_list_atemp = train_list_atemp.cpu().numpy()
             train_list_atemp = train_list_atemp.tolist()
@@ -167,7 +167,6 @@ def train_local(net, graph, feats, opt, args, memorybank_nor, memorybank_abnor, 
 
 
             train_ano_scoreclone = train_ano_score.clone()
-
 
             for idx in range(len(memorybank_nor)):
                 train_ano_score[idx, memorybank_nor[idx]] = 0
