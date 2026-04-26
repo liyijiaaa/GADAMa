@@ -193,15 +193,23 @@ def main(args):
     # load information from LIM module
     memo, nor_idx, ano_idx, center = load_info_from_local(local_net, args.gpu)
 
+
     if args.gpu >= 0:
         labels_gpu = graph.ndata['label']
     else:
         labels_gpu = torch.from_numpy(graph.ndata['label'].numpy())
     if len(ano_idx) > 0:
         abnor_accuracy = labels_gpu[ano_idx].float().mean().item()
-        print("First stage abnormal node accuracy: {:.4f}".format(abnor_accuracy))
+        print("First stage abnormal node accuracy: {:.4f} ({} nodes)".format(abnor_accuracy, len(abnor_idx)))
     else:
         print("Warning: No abnormal nodes selected in first stage.")
+
+
+    if len(nor_idx) > 0:
+        norm_accuracy = (labels_gpu[nor_idx] == 0).float().mean().item()
+        print("First stage normal node accuracy: {:.4f} ({} nodes)".format(norm_accuracy, len(norm_idx)))
+    else:
+        print("Warning: No normal nodes selected in first stage.")
 
 
     t2 = time.time()
