@@ -75,7 +75,7 @@ def load_info_from_local(local_net, device):
     graph = memo['graph']
     pos = graph.ndata['pos']
     scores = -pos.detach()
-    ano_topk = 0.05  # k_ano
+    ano_topk = 0.005  # k_ano
     nor_topk = 0.3  # k_nor
     num_nodes = graph.num_nodes()
 
@@ -192,6 +192,21 @@ def main(args):
     
     # load information from LIM module
     memo, nor_idx, ano_idx, center = load_info_from_local(local_net, args.gpu)
+
+    #####   记得删除######   添加异常节点的标签准确率
+    if args.gpu >= 0:
+        labels = graph.ndata['label'].cpu().numpy()
+    else:
+        labels = graph.ndata['label'].numpy()
+
+    if len(ano_idx) > 0:
+        abnor_accuracy = labels[ano_idx].mean()  # 标签为 1 表示异常
+        print("First stage abnormal node accuracy: {:.4f}".format(abnor_accuracy))
+    else:
+        print("Warning: No abnormal nodes selected in first stage.")
+
+    ####
+
     t2 = time.time()
     graph = memo['graph']
     global_net = GlobalModel(graph, 
