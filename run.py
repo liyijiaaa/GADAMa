@@ -7,6 +7,7 @@ from model import *
 from utils import *
 from sklearn.metrics import roc_auc_score, recall_score, average_precision_score
 from pytorch_memlab import LineProfiler, profile
+from sklearn.preprocessing import MinMaxScaler
 
 
 # def train_local(net, graph, feats, opt, args, init=True):
