@@ -193,7 +193,6 @@ def main(args):
     # load information from LIM module
     memo, nor_idx, ano_idx, center = load_info_from_local(local_net, args.gpu)
 
-    #####   记得删除######   添加异常节点的标签准确率
     if args.gpu >= 0:
         labels = graph.ndata['label'].cpu().numpy()
     else:
@@ -205,7 +204,7 @@ def main(args):
     else:
         print("Warning: No abnormal nodes selected in first stage.")
 
-    ####
+
 
     t2 = time.time()
     graph = memo['graph']
