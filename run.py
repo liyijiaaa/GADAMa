@@ -200,14 +200,14 @@ def main(args):
         labels_gpu = torch.from_numpy(graph.ndata['label'].numpy())
     if len(ano_idx) > 0:
         abnor_accuracy = labels_gpu[ano_idx].float().mean().item()
-        print("First stage abnormal node accuracy: {:.4f} ({} nodes)".format(abnor_accuracy, len(abnor_idx)))
+        print("First stage abnormal node accuracy: {:.4f} ({} nodes)".format(abnor_accuracy, len(ano_idx)))
     else:
         print("Warning: No abnormal nodes selected in first stage.")
 
 
     if len(nor_idx) > 0:
         norm_accuracy = (labels_gpu[nor_idx] == 0).float().mean().item()
-        print("First stage normal node accuracy: {:.4f} ({} nodes)".format(norm_accuracy, len(norm_idx)))
+        print("First stage normal node accuracy: {:.4f} ({} nodes)".format(norm_accuracy, len(nor_idx)))
     else:
         print("Warning: No normal nodes selected in first stage.")
 
