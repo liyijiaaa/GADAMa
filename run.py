@@ -169,7 +169,11 @@ def train_local(net, graph, feats, opt, args, memorybank_nor, memorybank_abnor, 
             train_ano_scoreclone = train_ano_score.clone()
 
             for idx in range(len(memorybank_nor)):
-                train_ano_score[idx, memorybank_nor[idx]] = 0
+                #train_ano_score[idx, memorybank_nor[idx]] = 0
+                row = train_ano_score[idx]
+                mask = torch.ones_like(row, dtype=torch.bool)
+                mask[memorybank_nor[idx]] = False
+                row[mask] = 0
 
             train_ano_score_nonzero = torch.count_nonzero(train_ano_score, dim=0)
             train_ano_score = torch.sum(train_ano_score, dim=0)
