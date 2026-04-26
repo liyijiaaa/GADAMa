@@ -75,7 +75,7 @@ def load_info_from_local(local_net, device):
     graph = memo['graph']
     pos = graph.ndata['pos']
     scores = -pos.detach()
-    ano_topk = 0.05  # k_ano
+    ano_topk = 0.04  # k_ano
     nor_topk = 0.3  # k_nor
     num_nodes = graph.num_nodes()
 
