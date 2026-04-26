@@ -199,11 +199,10 @@ def main(args):
         labels = graph.ndata['label'].numpy()
 
     if len(ano_idx) > 0:
-        abnor_accuracy = labels[ano_idx].mean()  # 标签为 1 表示异常
+        abnor_accuracy = labels[ano_idx].mean()
         print("First stage abnormal node accuracy: {:.4f}".format(abnor_accuracy))
     else:
         print("Warning: No abnormal nodes selected in first stage.")
-
 
 
     t2 = time.time()
