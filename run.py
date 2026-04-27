@@ -10,100 +10,10 @@ from pytorch_memlab import LineProfiler, profile
 from sklearn.preprocessing import MinMaxScaler
 
 
-# def train_local(net, graph, feats, opt, args, init=True):
-#     memo = {}
-#     labels = graph.ndata['label']
-#     num_nodes=  graph.num_nodes()
-#
-#     device = args.gpu
-#     if device >= 0:
-#         torch.cuda.set_device(device)
-#         net = net.to(device)
-#         labels = labels.cuda()
-#         feats = feats.cuda()
-#
-#     def init_xavier(m):
-#         if type(m) == nn.Linear:
-#             nn.init.xavier_normal_(m.weight)
-#
-#     if init:
-#         net.apply(init_xavier)
-#
-#     print('train on:', 'cpu' if device<0 else 'gpu {}'.format(device))
-#
-#     cnt_wait = 0
-#     best = 999
-#     dur = []
-#
-#     for epoch in range(args.local_epochs):
-#         net.train()
-#         if epoch >= 3:
-#             t0 = time.time()
-#
-#         opt.zero_grad()
-#         loss, l1, l2 = net(feats)
-#
-#         loss.backward()
-#         opt.step()
-#
-#         if epoch >= 3:
-#             dur.append(time.time() - t0)
-#
-#         if loss.item() < best:
-#             best = loss.item()
-#             torch.save(net.state_dict(), 'best_local_model.pkl')
-#
-#         print("Epoch {} | Time(s) {:.4f} | Loss {:.4f} | l1 {:.4f} | l2 {:.4f}"
-#               .format(epoch+1, np.mean(dur), loss.item(), l1.item(), l2.item()))
-#
-#     memo['graph'] = graph
-#     net.load_state_dict(torch.load('best_local_model.pkl'))
-#     h, mean_h = net.encoder(feats)
-#     h, mean_h = h.detach(), mean_h.detach()
-#     memo['h'] = h
-#     memo['mean_h'] = mean_h
-#
-#     torch.save(memo, 'memo.pth')
-#
-#
-# def load_info_from_local(local_net, device):
-#     if device >= 0:
-#         torch.cuda.set_device(device)
-#         local_net = local_net.to(device)
-#
-#     memo = torch.load('memo.pth')
-#     local_net.load_state_dict(torch.load('best_local_model.pkl'))
-#     graph = memo['graph']
-#     pos = graph.ndata['pos']
-#     scores = -pos.detach()
-#     ano_topk = 0.05  # k_ano
-#     nor_topk = 0.3  # k_nor
-#     num_nodes = graph.num_nodes()
-#
-#     num_ano = int(num_nodes * ano_topk)
-#     _, ano_idx = torch.topk(scores, num_ano)
-#
-#     num_nor = int(num_nodes * nor_topk)
-#     _, nor_idx = torch.topk(-scores, num_nor)
-#
-#     feats = graph.ndata['feat']
-#
-#     h, _ = local_net.encoder(feats)
-#
-#     center = h[nor_idx].mean(dim=0).detach()
-#
-#     if device >= 0:
-#         memo = {k: v.to(device) for k, v in memo.items()}
-#         nor_idx = nor_idx.cuda()
-#         ano_idx = ano_idx.cuda()
-#         center = center.cuda()
-#
-#     return memo, nor_idx, ano_idx, center
-
-def train_local(net, graph, feats, opt, args, memorybank_nor, memorybank_abnor, init=True):
+def train_local(net, graph, feats, opt, args, init=True):
     memo = {}
     labels = graph.ndata['label']
-    num_nodes = graph.num_nodes()
+    num_nodes=  graph.num_nodes()
 
     device = args.gpu
     if device >= 0:
@@ -119,90 +29,22 @@ def train_local(net, graph, feats, opt, args, memorybank_nor, memorybank_abnor, 
     if init:
         net.apply(init_xavier)
 
-    print('train on:', 'cpu' if device < 0 else 'gpu {}'.format(device))
+    print('train on:', 'cpu' if device<0 else 'gpu {}'.format(device))
 
     cnt_wait = 0
     best = 999
     dur = []
 
-
-    train_ano_score = torch.zeros((args.local_epochs, num_nodes), dtype=torch.float)
-
     for epoch in range(args.local_epochs):
-
         net.train()
         if epoch >= 3:
             t0 = time.time()
+
         opt.zero_grad()
         loss, l1, l2 = net(feats)
+
         loss.backward()
         opt.step()
-
-        pos = graph.ndata['pos']
-        train_ano_score[epoch] = -pos.detach().view(-1)
-
-        if epoch > 0:
-
-            _, train_list_temp = train_ano_score[epoch - 1].topk(
-                int(num_nodes-(epoch / args.local_epochs) ** 2 * num_nodes), dim=0,
-                largest=False, sorted=True)
-            train_list_temp = train_list_temp.cpu().numpy()
-            train_list_temp = train_list_temp.tolist()
-            memorybank_nor.append(train_list_temp)
-
-
-            _, train_list_atemp = train_ano_score[epoch - 1].topk(
-                int(num_nodes-(epoch / args.local_epochs) ** 2 * num_nodes), dim=0,
-                largest=True, sorted=True)
-            train_list_atemp = train_list_atemp.cpu().numpy()
-            train_list_atemp = train_list_atemp.tolist()
-            memorybank_abnor.append(train_list_atemp)
-
-        if epoch == (args.local_epochs - 1):
-
-            train_ano_score = train_ano_score.cpu().detach().numpy()
-            scaler = MinMaxScaler()
-            train_ano_score = scaler.fit_transform(train_ano_score.T).T
-            train_ano_score = torch.DoubleTensor(train_ano_score).cuda()
-
-
-            train_ano_scoreclone = train_ano_score.clone()
-
-            for idx in range(len(memorybank_nor)):
-                #train_ano_score[idx, memorybank_nor[idx]] = 0
-                row = train_ano_score[idx]
-                mask = torch.ones_like(row, dtype=torch.bool)
-                mask[memorybank_nor[idx]] = False
-                row[mask] = 0
-
-            train_ano_score_nonzero = torch.count_nonzero(train_ano_score, dim=0)
-            train_ano_score = torch.sum(train_ano_score, dim=0)
-            train_ano_score = train_ano_score / train_ano_score_nonzero
-            _, train_list = train_ano_score.topk(int(0.30 * num_nodes), dim=0, largest=False, sorted=True)
-
-            train_list = train_list.cpu().numpy()
-            train_list = train_list.tolist()
-            nor_idx = train_list
-
-
-
-            for idx in range(len(memorybank_abnor)):
-
-                row = train_ano_scoreclone[idx]
-                mask = torch.ones_like(row, dtype=torch.bool)
-                mask[memorybank_abnor[idx]] = False
-                row[mask] = 0
-            abnormal_non_zero_count = torch.count_nonzero(train_ano_scoreclone, dim=0)
-            train_ano_scoreclone = torch.sum(train_ano_scoreclone, dim=0)
-            train_ano_scoreclone = train_ano_scoreclone / abnormal_non_zero_count
-            _, abnormal_indices = train_ano_scoreclone.topk(int(0.05 * num_nodes), dim=0, largest=True, sorted=True)
-            abnor_idx = abnormal_indices.cpu().numpy().tolist()
-
-
-
-
-
-
 
         if epoch >= 3:
             dur.append(time.time() - t0)
@@ -212,8 +54,7 @@ def train_local(net, graph, feats, opt, args, memorybank_nor, memorybank_abnor, 
             torch.save(net.state_dict(), 'best_local_model.pkl')
 
         print("Epoch {} | Time(s) {:.4f} | Loss {:.4f} | l1 {:.4f} | l2 {:.4f}"
-              .format(epoch + 1, np.mean(dur), loss.item(), l1.item(), l2.item()))
-
+              .format(epoch+1, np.mean(dur), loss.item(), l1.item(), l2.item()))
 
     memo['graph'] = graph
     net.load_state_dict(torch.load('best_local_model.pkl'))
@@ -221,13 +62,11 @@ def train_local(net, graph, feats, opt, args, memorybank_nor, memorybank_abnor, 
     h, mean_h = h.detach(), mean_h.detach()
     memo['h'] = h
     memo['mean_h'] = mean_h
+
     torch.save(memo, 'memo.pth')
-
-    return nor_idx, abnor_idx
-
-
-def load_info_from_local(local_net, nor_idx, abnor_idx, device):
-
+#
+#
+def load_info_from_local(local_net, device):
     if device >= 0:
         torch.cuda.set_device(device)
         local_net = local_net.to(device)
@@ -235,23 +74,31 @@ def load_info_from_local(local_net, nor_idx, abnor_idx, device):
     memo = torch.load('memo.pth')
     local_net.load_state_dict(torch.load('best_local_model.pkl'))
     graph = memo['graph']
+    pos = graph.ndata['pos']
+    scores = -pos.detach()
+    ano_topk = 0.06  # k_ano
+    nor_topk = 0.3  # k_nor
+    num_nodes = graph.num_nodes()
+
+    num_ano = int(num_nodes * ano_topk)
+    _, ano_idx = torch.topk(scores, num_ano)
+
+    num_nor = int(num_nodes * nor_topk)
+    _, nor_idx = torch.topk(-scores, num_nor)
+
     feats = graph.ndata['feat']
 
-
-    nor_idx = torch.tensor(nor_idx, dtype=torch.long)
-    abnor_idx = torch.tensor(abnor_idx, dtype=torch.long)
-
-
     h, _ = local_net.encoder(feats)
+
     center = h[nor_idx].mean(dim=0).detach()
 
     if device >= 0:
         memo = {k: v.to(device) for k, v in memo.items()}
         nor_idx = nor_idx.cuda()
-        abnor_idx = abnor_idx.cuda()
+        ano_idx = ano_idx.cuda()
         center = center.cuda()
 
-    return memo, nor_idx, abnor_idx, center
+    return memo, nor_idx, ano_idx, center
 
 
 
@@ -346,13 +193,11 @@ def main(args):
                                  lr=args.local_lr, 
                                  weight_decay=args.weight_decay)
     t1 = time.time()
-    #train_local(local_net, graph, feats, local_opt, args)
+    train_local(local_net, graph, feats, local_opt, args)
 
     # load information from LIM module
-    norm_idx, abnor_idx = train_local(local_net, graph, feats, local_opt, args, memorybank_nor, memorybank_abnor)
-    memo, nor_idx, ano_idx, center = load_info_from_local(local_net, norm_idx, abnor_idx, args.gpu)
 
-    #memo, nor_idx, ano_idx, center = load_info_from_local(local_net, args.gpu)
+    memo, nor_idx, ano_idx, center = load_info_from_local(local_net, args.gpu)
 
 
     if args.gpu >= 0:
