@@ -237,8 +237,6 @@ def main(args):
 
     t_all = t2+t4-t1-t3
     print('mean_t:{:.4f}'.format(t_all / (args.local_epochs + args.global_epochs)))
-
-    #可视化
     best_global_model_path = 'best_global_model.pkl'
     global_net.load_state_dict(torch.load(best_global_model_path))
     global_net.eval()
@@ -263,7 +261,7 @@ def main(args):
 
     # 保存图像（高 DPI，紧凑裁剪白边）
     plt.savefig('/kaggle/working/tsne_embedding4.png', dpi=300, bbox_inches='tight', pad_inches=0)
-    print("? 图像已保存到 /kaggle/working/tsne_embedding.png")
+    print("图像已保存到 /kaggle/working/tsne_embedding.png")
 
 
 
