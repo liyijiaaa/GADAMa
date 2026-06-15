@@ -78,7 +78,7 @@ def load_info_from_local(local_net, device):
     graph = memo['graph']
     pos = graph.ndata['pos']
     scores = -pos.detach()
-    ano_topk = 0.08  # k_ano
+    ano_topk = 0.05  # k_ano
     nor_topk = 0.3  # k_nor
     num_nodes = graph.num_nodes()
 
@@ -256,7 +256,7 @@ def main(args):
     plt.scatter(emb_2d[:, 0], emb_2d[:, 1], c=colors, s=20, alpha=0.7, edgecolors='none')
     plt.axis('off')
     plt.text(0.5, -0.05, 'GADAM', transform=plt.gca().transAxes, ha='center', va='top', fontsize=12)
-    plt.savefig('/kaggle/working/tsne_embedding6.png', dpi=300, bbox_inches='tight', pad_inches=0)
+    plt.savefig('/kaggle/working/tsne_embedding7.png', dpi=300, bbox_inches='tight', pad_inches=0)
 
 
 
