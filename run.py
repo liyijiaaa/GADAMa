@@ -250,18 +250,11 @@ def main(args):
     tsne = TSNE(n_components=2, perplexity=30, random_state=42, init='pca')
     emb_2d = tsne.fit_transform(emb)
     plt.figure(figsize=(10, 8))
-
     colors = ['#5d7eaf' if label == 0 else '#f52419' for label in labels]
-
     plt.scatter(emb_2d[:, 0], emb_2d[:, 1], c=colors, s=20, alpha=0.7, edgecolors='none')
-
-    # 隐藏整个坐标轴（包括刻度、标签、边框）
     plt.axis('off')
     plt.text(0.5, -0.05, 'LG-RAMP(ours)', transform=plt.gca().transAxes, ha='center', va='top', fontsize=12)
-
-    # 保存图像（高 DPI，紧凑裁剪白边）
     plt.savefig('/kaggle/working/tsne_embedding4.png', dpi=300, bbox_inches='tight', pad_inches=0)
-    print("图像已保存到 /kaggle/working/tsne_embedding.png")
 
 
 
