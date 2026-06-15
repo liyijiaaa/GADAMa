@@ -256,7 +256,7 @@ def main(args):
     plt.scatter(emb_2d[:, 0], emb_2d[:, 1], c=colors, s=20, alpha=0.7, edgecolors='none')
     plt.axis('off')
     plt.text(0.5, -0.05, 'GADAM', transform=plt.gca().transAxes, ha='center', va='top', fontsize=12)
-    plt.savefig('/kaggle/working/tsne_embedding5.png', dpi=300, bbox_inches='tight', pad_inches=0)
+    plt.savefig('/kaggle/working/tsne_embedding6.png', dpi=300, bbox_inches='tight', pad_inches=0)
 
 
 
