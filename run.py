@@ -252,20 +252,22 @@ def main(args):
         emb = emb.cpu().numpy()
     tsne = TSNE(n_components=2, perplexity=30, random_state=42, init='pca')
     emb_2d = tsne.fit_transform(emb)
+
     plt.figure(figsize=(10, 8))
     colors = ['#5d7eaf' if label == 0 else '#f52419' for label in labels]
-    plt.scatter(emb_2d[:, 0], emb_2d[:, 1], c=colors, s=60, alpha=0.7, edgecolors='none')
+    plt.scatter(emb_2d[:, 0], emb_2d[:, 1], c=colors, s=30, alpha=0.7, edgecolors='none')
     plt.xticks([])
     plt.yticks([])
     ax = plt.gca()
     for spine in ax.spines.values():
+        spine.set_visible(True)
         spine.set_linewidth(2)
         spine.set_color('black')
-    plt.text(0.5, 0.5, 'GADAM', transform=ax.transAxes,
-             ha='center', va='center', fontsize=24, weight='bold')
-
-    plt.savefig('/kaggle/working/GADAMtsne_embedding.png', dpi=1200, bbox_inches='tight', pad_inches=0)
-
+    ax.set_frame_on(True)
+    plt.text(0.5, -0.08, 'GADAM', transform=ax.transAxes,
+             ha='center', va='top', fontsize=18, weight='bold')
+    plt.savefig('/kaggle/working/GADAMtsne_embedding.png',
+                dpi=1200, bbox_inches='tight', pad_inches=0.15)
 
 
 if __name__ == '__main__':
