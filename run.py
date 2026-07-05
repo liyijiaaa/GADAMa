@@ -265,7 +265,7 @@ def main(args):
         spine.set_color('black')
     ax.set_frame_on(True)
     plt.text(0.5, -0.08, 'GADAM', transform=ax.transAxes,
-             ha='center', va='top', fontsize=22, weight='bold', fontname='Arial')  # ×ÖÌåArial£¬×ÖºÅ22
+             ha='center', va='top', fontsize=22, weight='bold', fontname='Arial')
     plt.savefig('/kaggle/working/GADAMtsne_embedding.png',
                 dpi=600, bbox_inches='tight', pad_inches=0.15)
 
