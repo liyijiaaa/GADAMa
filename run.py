@@ -261,13 +261,13 @@ def main(args):
     ax = plt.gca()
     for spine in ax.spines.values():
         spine.set_visible(True)
-        spine.set_linewidth(2)
+        spine.set_linewidth(1.5)  # 边框线宽改为1.5
         spine.set_color('black')
     ax.set_frame_on(True)
     plt.text(0.5, -0.08, 'GADAM', transform=ax.transAxes,
-             ha='center', va='top', fontsize=18, weight='bold')
+             ha='center', va='top', fontsize=22, weight='bold', fontname='Arial')  # 字体Arial，字号22
     plt.savefig('/kaggle/working/GADAMtsne_embedding.png',
-                dpi=1200, bbox_inches='tight', pad_inches=0.15)
+                dpi=600, bbox_inches='tight', pad_inches=0.15)
 
 
 if __name__ == '__main__':
