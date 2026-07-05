@@ -261,7 +261,7 @@ def main(args):
     ax = plt.gca()
     for spine in ax.spines.values():
         spine.set_visible(True)
-        spine.set_linewidth(1.5)
+        spine.set_linewidth(1)
         spine.set_color('black')
     ax.set_frame_on(True)
     plt.text(0.5, -0.08, 'GADAM', transform=ax.transAxes,
